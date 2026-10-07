@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanjaya's Oracle — Gate I: Authentication</title>
+    <meta name="description" content="Sanjaya's Oracle — The Kurukshetra War Registry. Speak the truth to enter.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="oracle-header-slot"></div>
+
+<main class="main-container">
+<div class="oracle-card fade-in">
+    <div class="card-header">
+        <div class="card-title">Gate I — The Archivist's Seal</div>
+        <div class="card-lore">
+            "The War Registry has slept for a thousand ages. Only a recognized
+            archivist may rouse it and make it speak. Present your seal — or
+            find another way through."
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div id="alert-container"></div>
+
+        <div id="unlocked-section" style="display:none;">
+            <div class="token-reveal fade-in">
+                <div class="token-label">Gate I — Token Issued</div>
+                <div class="token-value">AKSHA-1-7f2c19</div>
+            </div>
+            <p style="color:var(--text-dim); font-style:italic; margin-bottom:1.5rem;">
+                The archivist's seal is accepted. The Oracle now awaits your first question.
+            </p>
+            <a href="level2.html" class="btn btn-primary glow" id="proceed-gate2">
+                Proceed to Gate II &rarr;
+            </a>
+        </div>
+
+        <form id="login-form" autocomplete="off">
+            <div class="form-group">
+                <label class="form-label" for="username">Archivist's Name</label>
+                <input type="text" class="form-input" id="username" name="username"
+                       placeholder="Enter your archivist name&hellip;" spellcheck="false" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password">Seal Phrase</label>
+                <input type="password" class="form-input" id="password" name="password"
+                       placeholder="Speak the seal phrase&hellip;" autocomplete="off">
+            </div>
+            <button type="submit" class="btn btn-primary glow" id="submit-login">
+                Invoke the Oracle &#x26A1;
+            </button>
+        </form>
+
+        <div class="terminal mt-3">
+            <div class="terminal-header">
+                <span class="t-dot r"></span>
+                <span class="t-dot y"></span>
+                <span class="t-dot g"></span>
+                <span class="terminal-caption">Oracle Query Log</span>
+            </div>
+            <div class="terminal-body">
+                <div class="query-hint">
+                    SELECT * FROM archivists<br>
+                    &nbsp;WHERE username&nbsp;= '<span class="var">[your_input]</span>'<br>
+                    &nbsp;&nbsp; AND password = '<span class="var">[seal]</span>';
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</main>
+
+<div id="oracle-footer-slot"></div>
+
+<script src="js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    renderHeaderAndNav(1, "Sanjaya's Oracle \u2014 Gate I: Authentication");
+
+    var unlocked = (getOracleLevel() >= 2);
+    var form = document.getElementById('login-form');
+    var unlockedSec = document.getElementById('unlocked-section');
+    var alertContainer = document.getElementById('alert-container');
+
+    if (unlocked) {
+        form.style.display = 'none';
+        unlockedSec.style.display = 'block';
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var u = document.getElementById('username').value;
+        var p = document.getElementById('password').value;
+        alertContainer.innerHTML = '';
+
+        oracleLogin(u, p).then(function (res) {
+            if (res.ok) {
+                setOracleLevel(2);
+                renderHeaderAndNav(1, "Sanjaya's Oracle \u2014 Gate I: Authentication");
+                alertContainer.innerHTML = '<div class="alert alert-success fade-in">' +
+                    '<span class="alert-icon">&#x2714;</span>' +
+                    'The archive recognizes your seal. The first gate opens.</div>';
+                form.style.display = 'none';
+                unlockedSec.style.display = 'block';
+            } else {
+                alertContainer.innerHTML = '<div class="alert alert-error fade-in">' +
+                    '<span class="alert-icon">&#x2716;</span>' +
+                    'The Oracle does not recognize these words. The gate remains sealed.</div>';
+            }
+        }).catch(function () {
+            alertContainer.innerHTML = '<div class="alert alert-error fade-in">' +
+                '<span class="alert-icon">&#x2716;</span>' +
+                'The Oracle is unreachable. Try again in a moment.</div>';
+        });
+    });
+});
+</script>
+</body>
+</html>

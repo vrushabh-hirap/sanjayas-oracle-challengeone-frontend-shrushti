@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanjaya's Oracle — Gate IV: The Fate</title>
+    <meta name="description" content="Sanjaya's Oracle — The Kurukshetra War Registry.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="oracle-header-slot"></div>
+
+<main class="main-container">
+<div class="oracle-card fade-in">
+    <div class="card-header">
+        <div class="card-title">Gate IV — The Warrior's Fate</div>
+        <div class="card-lore">
+            "Side. Parentage. And now — how did he fall? When the Oracle speaks
+            a warrior's fate, only one name can attach to it. Speak that name, and
+            the final seal is broken."
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div id="alert-container"></div>
+
+        <div id="unlocked-section" style="display:none;">
+            <div class="download-reveal fade-in">
+                <span class="big-icon">&#x1F3F9;</span>
+                <div class="download-title">The Oracle Speaks</div>
+                <div class="download-lore">
+                    "The warrior is named. The archive is unsealed. The Oracle's truth
+                    is sealed within the banner — take it and look beneath its surface."
+                </div>
+                <a href="#" id="download-banner" class="btn btn-success">
+                    &#x2193; Download: kali_banner.png
+                </a>
+            </div>
+            <hr class="section-divider" style="margin:2rem 0;">
+        </div>
+
+        <form id="search-form" method="POST">
+            <div class="form-group">
+                <label class="form-label" for="search">Query the War Registry</label>
+                <div style="display:flex; gap:0.7rem; flex-wrap:wrap;">
+                    <input type="text" class="form-input" id="search" name="search"
+                           placeholder="Search warriors by name&hellip;" spellcheck="false" autocomplete="off"
+                           style="flex:1; min-width:200px;">
+                    <button type="submit" class="btn btn-secondary" id="btn-search">Query Oracle</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="terminal" style="margin-top:0.5rem;">
+            <div class="terminal-header">
+                <span class="t-dot r"></span>
+                <span class="t-dot y"></span>
+                <span class="t-dot g"></span>
+                <span class="terminal-caption">Registry Query &middot; 2 columns</span>
+            </div>
+            <div class="terminal-body">
+                <div class="query-hint">
+                    SELECT <span class="var">name</span>, <span class="var">side</span>
+                    FROM kshetra_rakshak<br>
+                    &nbsp;WHERE name = '<span class="var">[your_input]</span>' LIMIT 20;
+                </div>
+                <div id="results"></div>
+            </div>
+        </div>
+
+        <div id="claim-section">
+            <hr class="section-divider" style="margin:2rem 0;">
+            <div class="claim-box">
+                <div class="claim-title">&#x2694; Name the Warrior</div>
+                <div class="claim-lore">
+                    "Side known. Parentage known. Fate known. The identity of the warrior
+                    is now within reach. Speak his name to break the Oracle's final seal."
+                </div>
+                <form id="guess-form" autocomplete="off">
+                    <div class="claim-inline">
+                        <input type="text" class="form-input" id="warrior-name"
+                               placeholder="Who is this warrior?"
+                               spellcheck="false" autocomplete="off">
+                        <button type="submit" class="btn btn-primary glow" id="btn-guess">
+                            Declare His Name
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+</main>
+
+<div id="oracle-footer-slot"></div>
+
+<script src="js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (!verifyGateAccess(4)) return;
+    renderHeaderAndNav(4, "Sanjaya's Oracle \u2014 Gate IV: The Fate");
+
+    var named = isWarriorNamed();
+    var unlockedSec = document.getElementById('unlocked-section');
+    var claimSec = document.getElementById('claim-section');
+    var searchForm = document.getElementById('search-form');
+    var alertContainer = document.getElementById('alert-container');
+    var resultsEl = document.getElementById('results');
+    var dlLink = document.getElementById('download-banner');
+
+    function wireDownload(token) {
+        dlLink.href = '/api/download.php?token=' + encodeURIComponent(token);
+    }
+
+    if (named) {
+        unlockedSec.style.display = 'block';
+        claimSec.style.display = 'none';
+        wireDownload(getOracleToken());
+    }
+
+    searchForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var val = document.getElementById('search').value;
+        if (val === '') return;
+        oracleQuery(val).then(function (res) {
+            renderResultsTable(resultsEl, res.rows);
+        }).catch(function () {
+            resultsEl.innerHTML = '<div class="no-results">-- Oracle unreachable --</div>';
+        });
+    });
+
+    document.getElementById('guess-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var guess = document.getElementById('warrior-name').value;
+        alertContainer.innerHTML = '';
+        oracleCheck('name', guess).then(function (res) {
+            if (res.ok) {
+                if (res.token) setOracleToken(res.token);
+                setWarriorNamed();
+                renderHeaderAndNav(4, "Sanjaya's Oracle \u2014 Gate IV: The Fate");
+                wireDownload(res.token || getOracleToken());
+                alertContainer.innerHTML = '<div class="alert alert-success fade-in">' +
+                    '<span class="alert-icon">&#x2714;</span>' +
+                    'The warrior is known. The Oracle lifts its final seal. The banner awaits.</div>';
+                unlockedSec.style.display = 'block';
+                claimSec.style.display = 'none';
+            } else if (res.message && res.message.indexOf('another record') !== -1) {
+                alertContainer.innerHTML = '<div class="alert alert-error fade-in">' +
+                    '<span class="alert-icon">&#x2716;</span>' +
+                    'That name belongs to another record in the archive. Look again.</div>';
+            } else {
+                alertContainer.innerHTML = '<div class="alert alert-error fade-in">' +
+                    '<span class="alert-icon">&#x2716;</span>' +
+                    'The Oracle does not confirm that name. The evidence points elsewhere.</div>';
+            }
+        }).catch(function () {
+            alertContainer.innerHTML = '<div class="alert alert-error fade-in">' +
+                '<span class="alert-icon">&#x2716;</span>' +
+                'The Oracle is unreachable. Try again in a moment.</div>';
+        });
+    });
+});
+</script>
+</body>
+</html>

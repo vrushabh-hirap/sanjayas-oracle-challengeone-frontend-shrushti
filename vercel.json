@@ -1,0 +1,29 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://sanjayas-oracle-challengeone-backend.onrender.com/api/:path*"
+    },
+    {
+      "source": "/index.php",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/level2.php",
+      "destination": "/level2.html"
+    },
+    {
+      "source": "/level3.php",
+      "destination": "/level3.html"
+    },
+    {
+      "source": "/level4.php",
+      "destination": "/level4.html"
+    },
+    {
+      "source": "/download.php",
+      "destination": "/download.html"
+    }
+  ]
+}
